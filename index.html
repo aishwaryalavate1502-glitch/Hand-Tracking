@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Vision: Hand Tracking & Emotion Detection System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-cyber-dark">
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark border-bottom border-cyber-cyan sticky-top bg-cyber-nav backdrop-blur">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                <div class="brand-icon-wrapper">
+                    <i class="fa-solid fa-eye brand-icon"></i>
+                </div>
+                <div>
+                    <span class="font-orbitron brand-title glow-cyan">AI VISION</span>
+                    <span class="badge bg-cyber-badge ms-2">PRO v2.5</span>
+                    <div class="brand-subtitle text-muted-cyan">HAND TRACKING & EMOTION DETECTION</div>
+                </div>
+            </a>
+
+            <!-- Control Buttons & Status Badge -->
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <div class="status-pill offline" id="systemStatusBadge">
+                    <span class="status-dot"></span>
+                    <span id="statusText">SYSTEM READY</span>
+                </div>
+
+                <button class="btn btn-cyber-primary" id="btnStartCamera">
+                    <i class="fa-solid fa-play me-2"></i> Start Camera
+                </button>
+                <button class="btn btn-cyber-danger d-none" id="btnStopCamera">
+                    <i class="fa-solid fa-stop me-2"></i> Stop Camera
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Body -->
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-4">
+            
+            <!-- LEFT COLUMN: Live Camera Feed -->
+            <div class="col-lg-7 col-xl-8">
+                <div class="card cyber-card h-100">
+                    <div class="card-header cyber-card-header d-flex justify-content-between align-items-center">
+                        <span class="font-orbitron card-title">
+                            <i class="fa-solid fa-video me-2 text-cyber-cyan"></i> LIVE AI CAMERA STREAM
+                        </span>
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="badge bg-cyber-dark-pill" id="fpsDisplay">
+                                <i class="fa-solid fa-gauge-high me-1 text-cyber-emerald"></i> FPS: 0.0
+                            </span>
+                            <span class="badge bg-cyber-dark-pill" id="hdBadge">1080p 60FPS READY</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body p-0 position-relative video-container-wrapper">
+                        <!-- Video Stream Element -->
+                        <img id="videoFeed" src="" class="img-fluid video-stream d-none" alt="AI Camera Stream">
+
+                        <!-- Offline Camera Standby Placeholder -->
+                        <div id="videoPlaceholder" class="video-placeholder d-flex flex-column align-items-center justify-content-center text-center p-5">
+                            <div class="scanner-ring mb-4">
+                                <i class="fa-solid fa-camera-retro placeholder-icon"></i>
+                            </div>
+                            <h4 class="font-orbitron text-white mb-2">CAMERA STREAM OFFLINE</h4>
+                            <p class="text-cyber-muted max-w-md mb-4">Click "Start Camera" above to launch real-time hand landmark tracking and facial emotion analysis.</p>
+                            <button class="btn btn-cyber-primary btn-lg pulse-glow" id="btnPlaceholderStart">
+                                <i class="fa-solid fa-power-off me-2"></i> Launch AI Vision Feed
+                            </button>
+                        </div>
+
+                        <!-- Live Feed Overlay HUD -->
+                        <div id="streamHudOverlay" class="stream-hud-overlay d-none">
+                            <div class="hud-top-bar d-flex justify-content-between p-3">
+                                <span class="hud-tag"><i class="fa-solid fa-circle text-danger blink me-1"></i> LIVE AI FEED</span>
+                                <span class="hud-tag" id="hudResolution">1280x720</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Controls Footer -->
+                    <div class="card-footer cyber-card-footer d-flex justify-content-between align-items-center">
+                        <small class="text-cyber-muted">Powered by MediaPipe & OpenCV Deep Vision Engine</small>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-cyber-secondary" id="btnToggleFullscreen">
+                                <i class="fa-solid fa-expand me-1"></i> Fullscreen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Real-Time AI Analytics Dashboard -->
+            <div class="col-lg-5 col-xl-4">
+                <div class="d-flex flex-column gap-4">
+
+                    <!-- CARD 1: Facial Emotion Recognition -->
+                    <div class="card cyber-card">
+                        <div class="card-header cyber-card-header">
+                            <span class="font-orbitron card-title">
+                                <i class="fa-solid fa-face-smile me-2 text-cyber-magenta"></i> EMOTION ANALYSIS
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Top Detected Emotion Display -->
+                            <div class="d-flex align-items-center gap-3 mb-3 p-3 cyber-subcard rounded-3">
+                                <div class="emotion-emoji-box" id="primaryEmotionEmoji">😐</div>
+                                <div class="flex-grow-1">
+                                    <div class="text-cyber-muted small">CURRENT EMOTION</div>
+                                    <h3 class="font-orbitron text-white mb-0" id="primaryEmotionName">Neutral</h3>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-cyber-muted small">CONFIDENCE</div>
+                                    <div class="font-orbitron h4 text-cyber-magenta mb-0" id="primaryEmotionConf">0%</div>
+                                </div>
+                            </div>
+
+                            <!-- Confidence Meter Bar -->
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between small text-cyber-muted mb-1">
+                                    <span>Detection Accuracy</span>
+                                    <span id="emotionMeterVal">0%</span>
+                                </div>
+                                <div class="progress cyber-progress">
+                                    <div class="progress-bar bg-gradient-magenta" id="emotionProgressBar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Emotion History & Distribution Breakdown -->
+                            <h6 class="font-orbitron small text-cyber-cyan mb-2">
+                                <i class="fa-solid fa-chart-simple me-1"></i> EMOTION PROBABILITY SPECTRUM
+                            </h6>
+                            <div class="emotion-spectrum-list" id="emotionSpectrumList">
+                                <!-- Dynamic Emotion Bars inserted via script.js -->
+                                <div class="text-center py-3 text-cyber-muted small">Awaiting camera frame input...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: Hand Tracking & Gesture Detection -->
+                    <div class="card cyber-card">
+                        <div class="card-header cyber-card-header d-flex justify-content-between align-items-center">
+                            <span class="font-orbitron card-title">
+                                <i class="fa-solid fa-hand me-2 text-cyber-cyan"></i> HAND TRACKING
+                            </span>
+                            <span class="badge bg-cyber-badge" id="handsCountBadge">0 Hands</span>
+                        </div>
+                        <div class="card-body">
+                            
+                            <!-- Finger Counter Big Display -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <div class="stat-box text-center p-3 rounded-3 cyber-subcard">
+                                        <div class="stat-value font-orbitron text-cyber-cyan" id="totalFingersCount">0</div>
+                                        <div class="stat-label text-cyber-muted">RAISED FINGERS</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stat-box text-center p-3 rounded-3 cyber-subcard">
+                                        <div class="stat-value font-orbitron text-cyber-emerald" id="detectedHandsCount">0</div>
+                                        <div class="stat-label text-cyber-muted">HANDS DETECTED</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detected Hands & Gestures Container -->
+                            <div id="handsListContainer" class="d-flex flex-column gap-2">
+                                <div class="no-hands-placeholder text-center py-4 text-cyber-muted">
+                                    <i class="fa-solid fa-hand-sparkles display-6 mb-2 opacity-50"></i>
+                                    <p class="mb-0 small">No hands detected in webcam view</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: Quick System Metrics -->
+                    <div class="card cyber-card">
+                        <div class="card-header cyber-card-header">
+                            <span class="font-orbitron card-title">
+                                <i class="fa-solid fa-server me-2 text-cyber-emerald"></i> SYSTEM TELEMETRY
+                            </span>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="list-group list-group-flush cyber-list">
+                                <div class="list-group-item bg-transparent d-flex justify-content-between text-cyber-muted">
+                                    <span><i class="fa-solid fa-microchip me-2 text-cyber-cyan"></i> AI Inference Engine</span>
+                                    <span class="text-white">MediaPipe + OpenCV</span>
+                                </div>
+                                <div class="list-group-item bg-transparent d-flex justify-content-between text-cyber-muted">
+                                    <span><i class="fa-solid fa-bolt me-2 text-cyber-emerald"></i> Real-time Latency</span>
+                                    <span class="text-cyber-emerald" id="latencyDisplay">~15ms</span>
+                                </div>
+                                <div class="list-group-item bg-transparent d-flex justify-content-between text-cyber-muted">
+                                    <span><i class="fa-solid fa-shield-halved me-2 text-cyber-magenta"></i> Status</span>
+                                    <span class="badge bg-cyber-emerald" id="telemetryStatus">ACTIVE</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast / Alert Notification Popup Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="cyberToast" class="toast cyber-toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header cyber-toast-header">
+                <i class="fa-solid fa-circle-info me-2 text-cyber-cyan"></i>
+                <strong class="me-auto font-orbitron" id="toastTitle">System Alert</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body text-white" id="toastBody">
+                Notification message goes here.
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
